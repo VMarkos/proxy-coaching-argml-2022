@@ -1,4 +1,4 @@
-# Data Generation
+# Experiments
 Notes on `experiments.js`.
 
 ## Purpose
