@@ -1,3 +1,4 @@
+import json
 import random
 from dataclasses import dataclass
 from pathlib import Path
@@ -5,7 +6,9 @@ from pathlib import Path
 
 @dataclass
 class Instance(object):
-    """A class to represent a single instance of training data."""
+    """
+    A class to represent a single instance of training data.
+    """
 
     data: list
     side: list
@@ -49,3 +52,52 @@ def get_project_root() -> Path:
     Returns the root folder of the project.
     """
     return Path(__file__).absolute().parent.parent
+
+
+def load_datasets_for_kb(
+    kb_name: str, exclude_unlabelled: bool = True
+) -> tuple[list[Instance], list[Instance], list[Instance]]:
+    """
+    Loads datasets for the specified knowledge base/policy.
+
+    :param kb_name: name of the kb/policy
+    :param exclude_unlabelled: whether to filter out unlabelled data instances (NOTE: this only applies to the
+     training and testing sets, NOT the coaching set)
+    """
+    # get path for datasets in relation to this file
+    data_dir_path = get_project_root() / "data-gen" / "used-data"
+    assert data_dir_path.is_dir()
+
+    # read raw data from json files
+    with Path(data_dir_path, "trainTest.json").open("r") as f:
+        train_test_sets = json.load(f)
+        train_raw = train_test_sets[kb_name]["train"]
+        test_raw = train_test_sets[kb_name]["test"]
+
+    with Path(data_dir_path, "coaching.json").open("r") as f:
+        coach_raw = json.load(f)[kb_name]
+
+    # convert sets using the Instance class, for safer access to the data
+    conv_train_test_sets = []
+    for raw_set in [train_raw, test_raw]:
+        conv_set = [
+            Instance(
+                data=i["context"],
+                side=[],
+                label=[i["label"]] if i["label"] is not None else [],
+            )
+            for i in raw_set
+        ]
+
+        if exclude_unlabelled:
+            # if requested, filter out unlabelled instances (ONLY for training and testing)
+            conv_set = [i for i in conv_set if i.label]
+
+        conv_train_test_sets.append(conv_set)
+
+    training_set, testing_set = conv_train_test_sets
+
+    # NOTE that no filtering based on labels is applied to the coaching set
+    coaching_set = [Instance(data=i, side=[], label=[]) for i in coach_raw["full"]]
+
+    return training_set, testing_set, coaching_set
