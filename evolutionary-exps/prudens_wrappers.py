@@ -278,7 +278,7 @@ def run_prudens(
 ) -> list[list]:
     res = subprocess.run(
         args=["node", source_file_path.absolute()],
-        input=str(json.dumps(prudens_inputs)),
+        input=json.dumps(prudens_inputs),
         capture_output=True,
         text=True,
     )
