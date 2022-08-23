@@ -83,11 +83,12 @@ def run_evolutionary_coach_experiment(
     testing_labels: list[str] = [i.label[0] for i in testing_set]
     len_testing_set_full = len(testing_set)
 
-    # create an iterator for the coaching set, so it can be sampled one instance at a time
-    coaching_set_iterator = iter(coaching_set)
     assert (
         len(coaching_set) >= generations
     ), "Generation number larger than available coaching instances!"
+
+    # create an iterator for the coaching set, so it can be sampled one instance at a time
+    coaching_set_iterator = iter(coaching_set)
 
     # get the form of the target label, to use in the generation of new rules
     target_label = str(training_set[0].label[0]).replace("-", "")
@@ -111,19 +112,22 @@ def run_evolutionary_coach_experiment(
                 ]
 
                 if generation == 0:
-                    # at generation 0, start with a single organism with an empty KB
+                    # at gen 0, start with a single organism with an empty KB
                     current_population.append(PrudensSymbolicModule())
                 else:
                     assert len(current_population) == 1
                     parent = current_population[0]
                     current_population.clear()
 
-                    # create population for this generation
+                    # create population for this generation:
+
                     # FIRST, clone parent
+                    # TODO the parent clone should preserve its fitness scores, so it's not tested again
                     parent_clone = parent.clone()
-                    # duplicate clone's last rule, so rule numbers corresponds with gen numbers, this does not influence
-                    # fitness
+
                     if parent_clone.kb.is_not_empty():
+                        # duplicate the clone's last rule, so rule numbers correspond with gen numbers (this does not
+                        # influence fitness)
                         last_rule = parent_clone.kb.rules[-1]
                         parent_clone.induce(
                             PrudensRule(
@@ -133,8 +137,6 @@ def run_evolutionary_coach_experiment(
                             ),
                             deactivate_previous_last_rule=True,
                         )
-
-                    # todo the parent clone should preserve its fitness scores, so it's not tested needlessly again
 
                     # SECOND, using a context from the coaching set (and its deduced label, the operation is done in
                     # the previous gen), create 1 or 2 offspring, each with a new rule that maximally covers the
@@ -161,7 +163,7 @@ def run_evolutionary_coach_experiment(
                         o.induce(new_rule_based_on_random_context)
                         offspring_with_new_rule.append(o)
 
-                    # THIRD, create all possible offspring with -1 literal simplified rules based on parent's last rule
+                    # THIRD, create all possible offspring with -1 literal simplified versions of the parent's last rule
                     simplified_last_rule_offspring = []
                     if parent.kb.is_not_empty():
                         simplified_rules = simplify_prudens_rule(parent.kb.rules[-1])
@@ -252,15 +254,14 @@ def run_evolutionary_coach_experiment(
                         s.set_fitness_scores(fitness_scores=res, gen=generation)
                         s.next_gen_coaching_context = coaching_context
                         s.coaching_context_deduction_results = coaching_context_res
-                        # print("set coach res", res_coaching_context)
 
                 # pick survivor for next gen
                 beneficial, neutral, detrimental = [], [], []
                 for s in current_population:
-                    rl = s.get_relative_fitness()
-                    if rl > t:
+                    rel_fitness = s.get_relative_fitness()
+                    if rel_fitness > t:
                         beneficial.append(s)
-                    elif rl < -t:
+                    elif rel_fitness < -t:
                         detrimental.append(s)
                     else:
                         neutral.append(s)
@@ -303,16 +304,14 @@ def run_evolutionary_coach_experiment(
                 if epochs is None:
                     pbar.update()
                     if generation >= generations:
-                        # finished
-                        break
+                        break  # finished
                 else:
                     if pbar.n != epoch:
                         # only update when epoch changes, to get accurate time estimations
                         pbar.n = epoch
                         pbar.refresh()
                     if epoch >= epochs:
-                        # finished
-                        break
+                        break  # finished
 
     # here test all survivors on testing and coaching sets (and training set, only if a subset was used during training)
     stats_json = {}
