@@ -28,9 +28,8 @@ def run_evolutionary_coach_experiment(
     """
     If epochs is provided, the number for generations is ignored.
     """
-    print(
-        f"Started at {datetime.now(ZoneInfo('Europe/Nicosia')).strftime('%Y-%m-%d %H:%M:%S')}."
-    )
+    tz, time_format = ZoneInfo("Europe/Nicosia"), "%Y-%m-%d %H:%M:%S"
+
     general_start = time.perf_counter()
     total_deduction_time = 0.0
     total_deductions = 0
@@ -48,7 +47,7 @@ def run_evolutionary_coach_experiment(
     iterations_type_secondary = "generations" if epochs is not None else "epochs"
 
     print(
-        f"{datetime.now(ZoneInfo('Europe/Nicosia')).strftime('%Y-%m-%d %H:%M:%S')} - "
+        f"{datetime.now(tz=tz).strftime(time_format)} - "
         f"Running experiment for '{kb_name}', {iterations_number} {iterations_type}, "
         f"{len(training_set)} training set ({training_set_size_limit or 'no'} random sampling), "
         f"{len(testing_set)} testing set, using {number_of_processes or 'unlimited'} processes."
@@ -80,7 +79,7 @@ def run_evolutionary_coach_experiment(
     testing_labels: list[str] = [i.label[0] for i in testing_set]
     len_testing_set_full = len(testing_set)
 
-    # create a generator for the coaching set, so it can be sampled one instance at a time
+    # create an iterator for the coaching set, so it can be sampled one instance at a time
     coaching_set_iterator = iter(coaching_set)
     assert (
         len(coaching_set) >= generations
@@ -504,9 +503,7 @@ def run_evolutionary_coach_experiment(
         all_organisms,
     )
 
-    print(
-        f"{datetime.now(ZoneInfo('Europe/Nicosia')).strftime('%Y-%m-%d %H:%M:%S')} - Finished\n"
-    )
+    print("Finished at:", datetime.now(tz=tz).strftime(time_format), "\n")
 
 
 def calc_symbolic_module_perf(
