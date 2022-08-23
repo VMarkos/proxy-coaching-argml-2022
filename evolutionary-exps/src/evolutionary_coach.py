@@ -536,3 +536,11 @@ def calc_symbolic_module_perf(
         else:
             results.append(0)  # abstention
     return sym_mod, results, res_for_next_gen_coaching_context
+
+
+def main():
+    load_datasets_for_kb("kb_20_2_4_1")
+
+
+if __name__ == "__main__":
+    main()

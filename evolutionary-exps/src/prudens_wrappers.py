@@ -292,7 +292,7 @@ def run_prudens(
 
     res = subprocess.run(
         args=[node_cmd, source_file_path.absolute()],
-        input=json.dumps(prudens_inputs),
+        input=str(json.dumps(prudens_inputs)).replace("null", ""),
         capture_output=True,
         text=True,
     )
