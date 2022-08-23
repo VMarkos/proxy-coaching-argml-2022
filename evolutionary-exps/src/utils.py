@@ -51,7 +51,7 @@ def get_project_root() -> Path:
     """
     Returns the root folder of the project.
     """
-    return Path(__file__).absolute().parent.parent
+    return Path(__file__).absolute().parent.parent.parent
 
 
 def load_datasets_for_kb(
