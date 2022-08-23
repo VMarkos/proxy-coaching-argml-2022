@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from prudens_wrappers import to_prudens_literal, PrudensRule, simplify_prudens_rule
 from symbolic_module import PrudensSymbolicModule
-from utils import negate, load_datasets_for_kb
+from utils import negate, load_datasets_for_kb, get_project_root
 
 
 def run_evolutionary_coach_experiment(
@@ -479,15 +479,14 @@ def run_evolutionary_coach_experiment(
 
     other_info_json["all_organisms"] = all_organisms
 
-    results_files_folder = Path(Path.cwd(), "results_files")
-    results_files_folder.mkdir(exist_ok=True)
+    # todo make this an argument of the function so it can be changed
+    results_dir = Path(get_project_root(), "evolutionary-exps", "results")
+    results_dir.mkdir(exist_ok=True)
 
-    with Path(results_files_folder, f"{kb_name}.json").open("w+") as f:
+    with Path(results_dir, f"{kb_name}.json").open("w+") as f:
         json.dump(stats_json, f)
 
-    with gzip.open(
-        Path(results_files_folder, f"{kb_name}-other_info.json.gz"), "w"
-    ) as f:
+    with gzip.open(Path(results_dir, f"{kb_name}-other_info.json.gz"), "w") as f:
         f.write(json.dumps(other_info_json).encode("utf-8"))
 
     del (
