@@ -68,6 +68,10 @@ def load_datasets_for_kb(
     data_dir_path = get_project_root() / "data-gen" / "used-data"
     assert data_dir_path.is_dir()
 
+    with Path(data_dir_path, "kbs.json").open("r") as f:
+        all_kb_names: list[str] = json.load(f)
+        assert kb_name in all_kb_names, f"{kb_name=} not valid."
+
     # read raw data from json files
     with Path(data_dir_path, "trainTest.json").open("r") as f:
         train_test_sets = json.load(f)
@@ -97,7 +101,7 @@ def load_datasets_for_kb(
 
     training_set, testing_set = conv_train_test_sets
 
-    # NOTE that no filtering based on labels is applied to the coaching set
+    # NOTE that no label-based filtering is applied to the coaching set
     coaching_set = [Instance(data=i, side=[], label=[]) for i in coach_raw["full"]]
 
     return training_set, testing_set, coaching_set
