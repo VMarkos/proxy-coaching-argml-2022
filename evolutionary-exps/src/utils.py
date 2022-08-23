@@ -55,7 +55,7 @@ def get_project_root() -> Path:
 
 
 def load_datasets_for_kb(
-    kb_name: str, exclude_unlabelled: bool = True
+    kb_name: str, exclude_unlabelled: bool = True, data_dir_path: Path = None
 ) -> tuple[list[Instance], list[Instance], list[Instance]]:
     """
     Loads datasets for the specified knowledge base/policy.
@@ -63,9 +63,11 @@ def load_datasets_for_kb(
     :param kb_name: name of the kb/policy
     :param exclude_unlabelled: whether to filter out unlabelled data instances (NOTE: this only applies to the
      training and testing sets, NOT the coaching set)
+    :param data_dir_path: optional custom path to the directory containing data files
     """
-    # get path for datasets in relation to this file
-    data_dir_path = get_project_root() / "data-gen" / "used-data"
+    if data_dir_path is None:
+        # if not specified, get path for datasets in relation to this file
+        data_dir_path = get_project_root() / "data-gen" / "used-data"
     assert data_dir_path.is_dir()
 
     with Path(data_dir_path, "kbs.json").open("r") as f:

@@ -21,11 +21,12 @@ def run_evolutionary_coach_experiment(
     kb_name: str,
     generations: int = 100,
     epochs: int = None,
-    use_multiprocessing: bool = True,
-    number_of_processes: int = None,
-    training_set_size_limit: int = None,
     t: int = 0,
     k: int = 2,
+    training_set_size_limit: int = None,
+    data_dir_path: Path = None,
+    use_multiprocessing: bool = True,
+    number_of_processes: int = None,
 ):
     """
     If epochs is provided, the number for generations is ignored.
@@ -43,7 +44,7 @@ def run_evolutionary_coach_experiment(
 
     # note the filtering of unlabelled instances from training and testing sets
     training_set, testing_set, coaching_set = load_datasets_for_kb(
-        kb_name, exclude_unlabelled=True
+        kb_name=kb_name, exclude_unlabelled=True, data_dir_path=data_dir_path
     )
 
     iterations_number = epochs if epochs is not None else generations
