@@ -144,23 +144,27 @@ class PrudensSymbolicModule(SymbolicModule):
     def get_fitness_scores(self):
         return self._personal_fitness_scores
 
-    # def get_personal_fitness(
-    #     self, fitness_measure: FitnessMeasure = FitnessMeasure.STRICT
-    # ) -> int:
-    #     # personal fitness is the sum of _personal_fitness_scores, at the only generation the organism lived
-    #     if not self._personal_fitness_scores:
-    #         raise ValueError("Organism fitness_scores have not been set yet!")
-    #
-    #     if fitness_measure is FitnessMeasure.SIMPLE:
-    #         # correct predictions give +1, abstentions and wrong predictions +0
-    #         fitness = sum(r for r in self._personal_fitness_scores if r == 1)
-    #     elif fitness_measure is FitnessMeasure.STRICT:
-    #         # correct predictions give +1, abstentions +0 and wrong predictions -1
-    #         fitness = sum(self._personal_fitness_scores)
-    #     else:
-    #         raise ValueError(f"fitness_measure {fitness_measure} is not a valid value!")
-    #
-    #     return fitness
+    def get_personal_fitness(
+        self,
+        # fitness_measure: FitnessMeasure = FitnessMeasure.STRICT,
+    ) -> int:
+        if not self._personal_fitness_scores:
+            raise ValueError("Organism fitness_scores have not been set yet!")
+
+        # if fitness_measure is FitnessMeasure.SIMPLE:
+        #     # correct predictions give +1, abstentions and wrong predictions +0
+        #     fitness = sum(r for r in self._personal_fitness_scores if r == 1)
+        # elif fitness_measure is FitnessMeasure.STRICT:
+        #     # correct predictions give +1, abstentions +0 and wrong predictions -1
+        #     fitness = sum(self._personal_fitness_scores)
+        # else:
+        #     raise ValueError(f"fitness_measure {fitness_measure} is not a valid value!")
+        #
+        # return fitness
+
+        # personal fitness is the sum of _personal_fitness_scores, at the only generation the organism lived
+        # correct predictions give +1, abstentions +0 and wrong predictions -1
+        return sum(self._personal_fitness_scores)
 
     def get_relative_fitness(self) -> int:
         if not self._personal_fitness_scores:
