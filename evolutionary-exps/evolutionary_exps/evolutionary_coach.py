@@ -12,9 +12,13 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 from tqdm import tqdm
 
-from prudens_wrappers import to_prudens_literal, PrudensRule, simplify_prudens_rule
-from symbolic_module import PrudensSymbolicModule
-from utils import negate, load_datasets_for_kb, get_project_root
+from evolutionary_exps.prudens_wrappers import (
+    to_prudens_literal,
+    PrudensRule,
+    simplify_prudens_rule,
+)
+from evolutionary_exps.symbolic_module import PrudensSymbolicModule
+from evolutionary_exps.utils import negate, load_datasets_for_kb, get_project_root
 
 
 def run_evolutionary_coach_experiment(
@@ -34,6 +38,7 @@ def run_evolutionary_coach_experiment(
     t: threshold, à la Valiant
     k: exponent for weights in random survivor selection
     """
+
     tz, time_format = ZoneInfo("Europe/Nicosia"), "%Y-%m-%d %H:%M:%S"
 
     general_start = time.perf_counter()
@@ -534,11 +539,3 @@ def calc_symbolic_module_perf(
         else:
             results.append(0)  # abstention
     return sym_mod, results, res_for_next_gen_coaching_context
-
-
-def main():
-    load_datasets_for_kb("kb_20_2_4_1")
-
-
-if __name__ == "__main__":
-    main()

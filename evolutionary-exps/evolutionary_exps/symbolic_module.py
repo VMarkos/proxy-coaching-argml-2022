@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 import numpy as np
 import pandas as pd
 
-from prudens_wrappers import (
+from evolutionary_exps.prudens_wrappers import (
     PrudensRule,
     PrudensKnowledgeBase,
     run_prudens,
