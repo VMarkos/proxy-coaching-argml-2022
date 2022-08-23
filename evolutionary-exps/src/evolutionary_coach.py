@@ -24,9 +24,14 @@ def run_evolutionary_coach_experiment(
     use_multiprocessing: bool = True,
     number_of_processes: int = None,
     training_set_size_limit: int = None,
+    t: int = 0,
+    k: int = 2,
 ):
     """
     If epochs is provided, the number for generations is ignored.
+
+    t: threshold, à la Valiant
+    k: exponent for weights in random survivor selection
     """
     tz, time_format = ZoneInfo("Europe/Nicosia"), "%Y-%m-%d %H:%M:%S"
 
@@ -36,11 +41,10 @@ def run_evolutionary_coach_experiment(
     current_population: list[PrudensSymbolicModule] = []
     survivor_history: dict[int, PrudensSymbolicModule] = dict()
 
-    training_set, testing_set, coaching_set = load_datasets_for_kb(kb_name)
-
-    # filter unlabelled instances from training and testing sets
-    training_set = [i for i in training_set if i.label]
-    testing_set = [i for i in testing_set if i.label]
+    # note the filtering of unlabelled instances from training and testing sets
+    training_set, testing_set, coaching_set = load_datasets_for_kb(
+        kb_name, exclude_unlabelled=True
+    )
 
     iterations_number = epochs if epochs is not None else generations
     iterations_type = "epochs" if epochs is not None else "generations"
@@ -251,9 +255,6 @@ def run_evolutionary_coach_experiment(
                         # print("set coach res", res_coaching_context)
 
                 # pick survivor for next gen
-                t = 0  # threshold, à la Valiant
-                k = 2  # exponent for weights in random survivor selection
-
                 beneficial, neutral, detrimental = [], [], []
                 for s in current_population:
                     rl = s.get_relative_fitness()
@@ -268,7 +269,7 @@ def run_evolutionary_coach_experiment(
                     survivor = random.choices(
                         population=beneficial,
                         weights=[s.get_relative_fitness() ** k for s in beneficial],
-                        k=1,
+                        k=1,  # this k is for the number of choices
                     )[0]
                 elif neutral:
                     survivor = random.choice(neutral)
@@ -455,7 +456,7 @@ def run_evolutionary_coach_experiment(
         "ms/deduction": round((total_deduction_time / total_deductions) * 1000, 4),
     }
 
-    stats_df = pd.DataFrame.from_dict(other_info, orient="index").T
+    stats_df = pd.DataFrame.from_dict(other_info, orient="index").transpose()
 
     print(stats_df.to_markdown(index=False))
 
