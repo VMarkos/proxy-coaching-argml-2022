@@ -335,7 +335,7 @@ def run_evolutionary_coach_experiment(
     all_dts = [
         Dt("train", training_contexts, training_labels),
         Dt("test", testing_contexts, testing_labels),
-        Dt("coach", coaching_contexts, coaching_labels),
+        # Dt("coach", coaching_contexts, coaching_labels),
     ]
 
     with mp.Pool(processes=number_of_processes) as pool:
@@ -448,7 +448,7 @@ def run_evolutionary_coach_experiment(
         "Testing set length": len_testing_set_full,
         "Fitness - train": stats_json["train"]["personal"][-1],
         "Fitness - test": stats_json["test"]["personal"][-1],
-        "Fitness - coach": stats_json["coach"]["personal"][-1],
+        # "Fitness - coach": stats_json["coach"]["personal"][-1],
         "Total time (s)": round(total_time, 2),
         "Python time (s)": round(total_time - total_deduction_time, 2),
         "Deduction time (s)": round(total_deduction_time, 2),
