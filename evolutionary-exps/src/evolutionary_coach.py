@@ -517,11 +517,12 @@ def calc_symbolic_module_perf(
 ) -> tuple[PrudensSymbolicModule, list[int], list]:
     res_for_next_gen_coaching_context = []
     if next_gen_coaching_context is not None:
+        # include coaching context of the following generation in this gen's deductions, to reduce the number of
+        # interactions with Prudens
         outputs = sym_mod.deduce(
             side_input=[], theory_input=[*context_strings, next_gen_coaching_context]
         )
         res_for_next_gen_coaching_context = outputs.pop()
-        # print("coaching res", res_for_next_gen_coaching_context)
         assert len(outputs) == len(expected_labels)
     else:
         outputs = sym_mod.deduce(side_input=[], theory_input=context_strings)
