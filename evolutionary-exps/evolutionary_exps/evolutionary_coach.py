@@ -1,3 +1,4 @@
+import argparse
 import gzip
 import json
 import multiprocessing as mp
@@ -539,3 +540,34 @@ def calc_symbolic_module_perf(
         else:
             results.append(0)  # abstention
     return sym_mod, results, res_for_next_gen_coaching_context
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Evolutionary proxy coaching.")
+    parser.add_argument("--kb_name", type=str, help="name of the KB to train")
+    parser.add_argument(
+        "--kbs",
+        metavar="KB",
+        type=str,
+        nargs="+",
+        help="names of KBs to train",
+    )
+    parser.add_argument(
+        "-g",
+        "--generations",
+        type=int,
+        default=5,
+        help="number of generations to train",
+    )
+
+    args = parser.parse_args()
+
+    if args.kb_name is None and args.kbs is None:
+        raise NotImplementedError(
+            "If no single KB or KB list is specified, training with all KBs will be run (not implemented yet)."
+        )
+
+    if args.kb_name is not None:
+        run_evolutionary_coach_experiment(
+            kb_name=args.kb_name, generations=args.generations
+        )
