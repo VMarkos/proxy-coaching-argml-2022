@@ -129,11 +129,6 @@ def run_evolutionary_coach_experiment(
     use_multiprocessing: bool = True,
     number_of_processes: int = None,
 ):
-
-    t: threshold, à la Valiant
-    k: exponent for weights in random survivor selection
-    """
-
     tz = ZoneInfo("Europe/Nicosia")
     exp_start_time = datetime.now(tz=tz)
     time_format = "%Y-%m-%d %H:%M:%S"
