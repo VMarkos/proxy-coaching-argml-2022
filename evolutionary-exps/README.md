@@ -50,7 +50,7 @@ run_evol_coach_exp kb_20_10_10_2 kb_20_9_11_2
 ### Using custom input data
 
 To use custom data, a source data directory can be specified (the directory must have the structure 
-described [here](https://github.com/VMarkos/proxy-coaching-argml-2022/blob/main/tree-exps#execution)):
+described [here](https://github.com/VMarkos/proxy-coaching-argml-2022/tree/main/tree-exps#execution)):
 
 ```bash
 # make sure to use an absolute path
@@ -68,7 +68,7 @@ run_evol_coach_exp --results-dir-path /home/user/Downloads/results
 
 ### Other options
 
-All other experimental parameters can be customised, running `run_evol_coach_exp --help` shows all available options:
+All other experimental parameters can be customised - running `run_evol_coach_exp --help` shows all available options:
 
 ```terminal
  Usage: run_evol_coach_exp [OPTIONS] [KB_NAMES]...                                                                                                   
@@ -116,11 +116,6 @@ All other experimental parameters can be customised, running `run_evol_coach_exp
 │ --number-of-processes                                    INTEGER                          Number of cores to use during training. If None, all    │
 │                                                                                           available cores will be used. Ignored if                │
 │                                                                                           --no-use-multiprocessing is specified.                  │
-│                                                                                           [default: None]                                         │
-│ --install-completion                                     [bash|zsh|fish|powershell|pwsh]  Install completion for the specified shell.             │
-│                                                                                           [default: None]                                         │
-│ --show-completion                                        [bash|zsh|fish|powershell|pwsh]  Show completion for the specified shell, to copy it or  │
-│                                                                                           customize the installation.                             │
 │                                                                                           [default: None]                                         │
 │ --help                                                                                    Show this message and exit.                             │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
