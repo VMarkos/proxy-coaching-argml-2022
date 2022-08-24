@@ -75,10 +75,16 @@ def run_evolutionary_coach_experiments_cli(
     """
     Allows running evolutionary coach experiments using one or more target KBs.
     """
-    assert kb_names, "List of KB names cannot be empty!"
-    if data_dir_path is not None:
+    if data_dir_path is None:
+        # if not specified, get data path in relation to this file
+        data_dir_path = get_project_root() / "data-gen" / "used-data"
+    else:
         assert data_dir_path.is_absolute(), "Please provide an absolute data dir path!"
-    if results_dir_path is not None:
+
+    if results_dir_path is None:
+        # if not specified, use default location for results
+        results_dir_path = get_project_root() / "evolutionary-exps" / "results"
+    else:
         assert (
             results_dir_path.is_absolute()
         ), "Please provide an absolute results dir path!"
@@ -95,6 +101,7 @@ def run_evolutionary_coach_experiments_cli(
             k=k,
             training_set_size_limit=training_set_size_limit,
             data_dir_path=data_dir_path,
+            results_dir_path=results_dir_path,
             use_multiprocessing=use_multiprocessing,
             number_of_processes=number_of_processes,
         )
@@ -108,6 +115,7 @@ def run_evolutionary_coach_experiment(
     k: int = 2,
     training_set_size_limit: int = None,
     data_dir_path: Path = None,
+    results_dir_path: Path = Path(get_project_root(), "evolutionary-exps", "results"),
     use_multiprocessing: bool = True,
     number_of_processes: int = None,
 ):
