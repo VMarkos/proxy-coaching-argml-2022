@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 import re
+import shutil
 import subprocess
 import warnings
 from dataclasses import dataclass
@@ -273,17 +276,30 @@ def simplify_prudens_rule(rule: PrudensRule) -> list[PrudensRule]:
         return simplified_rules
 
 
+@cache
+def cmd_exists(cmd: str) -> bool:
+    """
+    Checks if the provided command exists on PATH (based on https://stackoverflow.com/a/28909933).
+    """
+    return shutil.which(cmd) is not None
+
+
 def run_prudens(
     prudens_inputs: dict[str, Sequence[Any]], source_file_path: Path
 ) -> list[list]:
+    node_cmd = "node"
+
+    if not cmd_exists(node_cmd):
+        raise AssertionError("Node JS must be installed and added to PATH.")
+
     res = subprocess.run(
-        args=["node", source_file_path.absolute()],
-        input=str(json.dumps(prudens_inputs)),
+        args=[node_cmd, source_file_path.absolute()],
+        input=str(json.dumps(prudens_inputs)).replace("null", ""),
         capture_output=True,
         text=True,
     )
 
     if len(res.stderr.strip()) > 0:
-        warnings.warn(f"Error message from NodeJS:\n{res.stderr}")
+        warnings.warn(f"Error message from Node JS:\n{res.stderr}")
 
     return [json.loads(r) for r in res.stdout.splitlines()]
