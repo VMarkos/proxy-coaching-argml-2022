@@ -28,7 +28,7 @@ app = typer.Typer()
 
 @app.command()
 def run_evolutionary_coach_experiments_cli(
-    kb_names: List[str] = typer.Option(
+    kb_names: List[str] = typer.Argument(
         None,
         help="Names of the target KBs to train with (use spaces to separate multiple names). If not specified, "
         "ALL KBs used in the experiments presented in the paper will be used. If a custom --data-dir-path is "
@@ -134,9 +134,11 @@ def run_evolutionary_coach_experiment(
     k: exponent for weights in random survivor selection
     """
 
-    tz, time_format = ZoneInfo("Europe/Nicosia"), "%Y-%m-%d %H:%M:%S"
+    tz = ZoneInfo("Europe/Nicosia")
+    exp_start_time = datetime.now(tz=tz)
+    time_format = "%Y-%m-%d %H:%M:%S"
 
-    general_start = time.perf_counter()
+    general_timer_start = time.perf_counter()
     total_deduction_time = 0.0
     total_deductions = 0
     current_population: list[PrudensSymbolicModule] = []
@@ -152,7 +154,7 @@ def run_evolutionary_coach_experiment(
     iterations_type_secondary = "generations" if epochs is not None else "epochs"
 
     print(
-        f"{datetime.now(tz=tz).strftime(time_format)} - "
+        f"{exp_start_time.strftime(time_format)} - "
         f"Running experiment for '{kb_name}', {iterations_number} {iterations_type}, "
         f"{len(training_set)} training set ({training_set_size_limit or 'no'} random sampling), "
         f"{len(testing_set)} testing set, using {number_of_processes or 'unlimited'} processes."
@@ -539,7 +541,7 @@ def run_evolutionary_coach_experiment(
     #     k: [i / len_testing_set_full for i in v] for k, v in testing_stats.items()
     # }
 
-    total_time = time.perf_counter() - general_start
+    total_time = time.perf_counter() - general_timer_start
 
     other_info = {
         "KB name": kb_name,
@@ -579,14 +581,17 @@ def run_evolutionary_coach_experiment(
 
     other_info_json["all_organisms"] = all_organisms
 
-    # todo make this an argument of the function so it can be changed
-    results_dir = Path(get_project_root(), "evolutionary-exps", "results")
-    results_dir.mkdir(exist_ok=True)
+    exp_results_dir_path = Path(
+        results_dir_path, f"{kb_name}_{exp_start_time.strftime('%Y%m%d%H%M%S')}"
+    )
+    exp_results_dir_path.mkdir(exist_ok=True, parents=True)
 
-    with Path(results_dir, f"{kb_name}.json").open("w+") as f:
+    with Path(exp_results_dir_path, f"{kb_name}.json").open("w+") as f:
         json.dump(stats_json, f)
 
-    with gzip.open(Path(results_dir, f"{kb_name}-other_info.json.gz"), "w") as f:
+    with gzip.open(
+        Path(exp_results_dir_path, f"{kb_name}-other_info.json.gz"), "w"
+    ) as f:
         f.write(json.dumps(other_info_json).encode("utf-8"))
 
     del (
@@ -603,7 +608,8 @@ def run_evolutionary_coach_experiment(
         all_organisms,
     )
 
-    print("Finished at:", datetime.now(tz=tz).strftime(time_format), "\n")
+    print("Finished at", datetime.now(tz=tz).strftime(time_format))
+    print("Results saved at", exp_results_dir_path, "\n")
 
 
 def calc_symbolic_module_perf(
