@@ -24,4 +24,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-run_evol = "evolutionary_exps.evolutionary_coach:app"
+run_evol_coach_exp = "evolutionary_exps.evolutionary_coach:app"
