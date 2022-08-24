@@ -127,8 +127,6 @@ def run_evolutionary_coach_experiment(
     use_multiprocessing: bool = True,
     number_of_processes: int = None,
 ):
-    """
-    If epochs is provided, the number for generations is ignored.
 
     t: threshold, à la Valiant
     k: exponent for weights in random survivor selection
@@ -234,7 +232,6 @@ def run_evolutionary_coach_experiment(
                     # create population for this generation:
 
                     # FIRST, clone parent
-                    # TODO the parent clone should preserve its fitness scores, so it's not tested again
                     parent_clone = parent.clone()
 
                     if parent_clone.kb.is_not_empty():
@@ -361,7 +358,7 @@ def run_evolutionary_coach_experiment(
                     for (s_copy, res, coaching_context_res), s in zip(
                         results, current_population
                     ):
-                        # pool.starmap returns ordered results, but the returned symoid instance is a copy
+                        # pool.starmap returns ordered results, but the returned organisms are copies
                         assert s_copy.id == s.id
                         s.set_fitness_scores(fitness_scores=res, gen=generation)
                         s.next_gen_coaching_context = coaching_context
@@ -478,78 +475,6 @@ def run_evolutionary_coach_experiment(
                 "personal": [sum(p) for p in survivor_predictions],
             }
 
-        # deduction_start = time.perf_counter()
-        # full_training_dataset_predictions = pool.starmap(
-        #     test_symoidv2_preprocessed2,
-        #     tqdm(
-        #         zip(all_survivors, repeat(training_contexts), repeat(training_labels)),
-        #         total=len(all_survivors),
-        #         leave=True,
-        #         desc="Evaluating full training set",
-        #     ),
-        # )
-        # total_deduction_time += time.perf_counter() - deduction_start
-        # total_deductions += len(all_survivors) * len(training_contexts)
-        #
-        # deduction_start = time.perf_counter()
-        # full_testing_dataset_predictions = pool.starmap(
-        #     test_symoidv2_preprocessed2,
-        #     tqdm(
-        #         zip(all_survivors, repeat(testing_contexts), repeat(testing_labels)),
-        #         total=len(all_survivors),
-        #         leave=True,
-        #         desc="Evaluating full testing set",
-        #     ),
-        # )
-        # total_deduction_time += time.perf_counter() - deduction_start
-        # total_deductions += len(all_survivors) * len(testing_contexts)
-
-    # assert len(full_training_dataset_predictions) == len(
-    #     full_testing_dataset_predictions
-    # )
-
-    # train_correct_preds_per_gen, test_correct_preds_per_gen = [], []
-    # train_abstain_preds_per_gen, test_abstain_preds_per_gen = [], []
-    # train_wrong_preds_per_gen, test_wrong_preds_per_gen = [], []
-    # train_personal_fitness_per_gen, test_personal_fitness_per_gen = [], []
-
-    # for (s1, train_res, _), (s2, test_res, _) in zip(
-    #     full_training_dataset_predictions, full_testing_dataset_predictions
-    # ):
-    #     assert s1.id == s2.id
-    #
-    #     train_correct_preds_per_gen.append(train_res.count(1))
-    #     train_abstain_preds_per_gen.append(train_res.count(0))
-    #     train_wrong_preds_per_gen.append(train_res.count(-1))
-    #     train_personal_fitness_per_gen.append(sum(train_res))
-    #
-    #     test_correct_preds_per_gen.append(test_res.count(1))
-    #     test_abstain_preds_per_gen.append(test_res.count(0))
-    #     test_wrong_preds_per_gen.append(test_res.count(-1))
-    #     test_personal_fitness_per_gen.append(sum(test_res))
-
-    # training_stats = {
-    #     "correct": train_correct_preds_per_gen,
-    #     "abstain": train_abstain_preds_per_gen,
-    #     "wrong": train_wrong_preds_per_gen,
-    #     "personal": train_personal_fitness_per_gen,
-    # }
-    # testing_stats = {
-    #     "correct": test_correct_preds_per_gen,
-    #     "abstain": test_abstain_preds_per_gen,
-    #     "wrong": test_wrong_preds_per_gen,
-    #     "personal": test_personal_fitness_per_gen,
-    # }
-
-    # stats_json["training"] = training_stats
-    # stats_json["training_percent"] = {
-    #     k: [i / len_training_set_full for i in v] for k, v in training_stats.items()
-    # }
-    # stats_json["testing"] = testing_stats
-    # stats_json["testing_percent"] = {
-    #     k: [i / len_testing_set_full for i in v] for k, v in testing_stats.items()
-    # }
-
     total_time = time.perf_counter() - general_timer_start
 
     other_info = {
@@ -567,10 +492,6 @@ def run_evolutionary_coach_experiment(
         "ms/deduction": round((total_deduction_time / total_deductions) * 1000, 4),
     }
 
-    stats_df = pd.DataFrame.from_dict(other_info, orient="index").transpose()
-
-    print(stats_df.to_markdown(index=False))
-
     other_info_json["other_info"] = other_info
 
     other_info_json["survivors_per_gen"] = {
@@ -578,14 +499,14 @@ def run_evolutionary_coach_experiment(
     }
 
     all_organisms = {}
-    for symoid in all_survivors:
-        all_organisms[str(symoid.id)] = {
-            "kb": symoid.kb.to_string(),
-            "lineage": [str(i) for i in symoid.lineage],
-            "fitness_scores": symoid.get_fitness_scores(),
-            "personal_fitness": symoid.get_personal_fitness(),
-            "relative_fitness": int(symoid.get_relative_fitness()),
-            "fitness_by_rule_stats": symoid.get_fitness_by_rule_stats(),
+    for survivor in all_survivors:
+        all_organisms[str(survivor.id)] = {
+            "kb": survivor.kb.to_string(),
+            "lineage": [str(i) for i in survivor.lineage],
+            "fitness_scores": survivor.get_fitness_scores(),
+            "personal_fitness": survivor.get_personal_fitness(),
+            "relative_fitness": int(survivor.get_relative_fitness()),
+            "fitness_by_rule_stats": survivor.get_fitness_by_rule_stats(),
         }
 
     other_info_json["all_organisms"] = all_organisms
@@ -612,7 +533,6 @@ def run_evolutionary_coach_experiment(
         training_contexts,
         training_labels,
         stats_json,
-        stats_df,
         other_info_json,
         all_organisms,
     )
@@ -620,7 +540,7 @@ def run_evolutionary_coach_experiment(
     print("Results saved at:", exp_results_dir_path)
     print(
         pd.DataFrame.from_dict(other_info, orient="index").to_markdown(
-            tablefmt="outline",
+            tablefmt="fancy_outline",
             headers=["Experiment results", "Value"],
         )
     )
@@ -659,31 +579,3 @@ def calc_symbolic_module_perf(
 
 if __name__ == "__main__":
     app()
-    # parser = argparse.ArgumentParser(description="Evolutionary proxy coaching.")
-    # parser.add_argument("--kb_name", type=str, help="name of the KB to train")
-    # parser.add_argument(
-    #     "--kbs",
-    #     metavar="KB",
-    #     type=str,
-    #     nargs="+",
-    #     help="names of KBs to train",
-    # )
-    # parser.add_argument(
-    #     "-g",
-    #     "--generations",
-    #     type=int,
-    #     default=5,
-    #     help="number of generations to train",
-    # )
-    #
-    # args = parser.parse_args()
-    #
-    # if args.kb_name is None and args.kbs is None:
-    #     raise NotImplementedError(
-    #         "If no single KB or KB list is specified, training with all KBs will be run (not implemented yet)."
-    #     )
-    #
-    # if args.kb_name is not None:
-    #     run_evolutionary_coach_experiment(
-    #         kb_name=args.kb_name, generations=args.generations
-    #     )
