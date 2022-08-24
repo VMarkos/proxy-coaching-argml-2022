@@ -28,8 +28,11 @@ app = typer.Typer()
 
 @app.command()
 def run_evolutionary_coach_experiments_cli(
-    kb_names: List[str] = typer.Argument(
-        ..., help="Names of the target KBs to train with."
+    kb_names: List[str] = typer.Option(
+        None,
+        help="Names of the target KBs to train with (use spaces to separate multiple names). If not specified, "
+        "ALL KBs used in the experiments presented in the paper will be used. If a custom --data-dir-path is "
+        "specified, all KBs specified in the `kbs.json` file will be used.",
     ),
     generations: int = typer.Option(100, help="Number of generations to train for."),
     epochs: int = typer.Option(
@@ -39,8 +42,8 @@ def run_evolutionary_coach_experiments_cli(
     ),
     t: int = typer.Option(
         0,
-        help="Threshold value used to split a population into beneficial, neutral, and detrimental groups, see "
-        "Valiant (2009), Evolvability, Journal of the ACM, 56(1), 1–21, https://doi.org/10.1145/1462153.1462156",
+        help="Threshold value used to split a population into beneficial, neutral, and detrimental groups, (see "
+        "Valiant, 2009: Evolvability, Journal of the ACM, 56(1), 1–21, https://doi.org/10.1145/1462153.1462156)",
     ),
     k: int = typer.Option(
         2,
@@ -89,8 +92,13 @@ def run_evolutionary_coach_experiments_cli(
             results_dir_path.is_absolute()
         ), "Please provide an absolute results dir path!"
 
+    if not kb_names:
+        # if not specified, run experiments for all KBs specified in data_dir_path
+        with Path(data_dir_path, "kbs.json").open("r") as f:
+            kb_names = json.load(f)
+
     if len(kb_names) > 1:
-        print(f"Running experiments for {len(kb_names)} KBs: {kb_names}.\n")
+        print(f"Running experiments for a total of {len(kb_names)} KBs.\n")
 
     for kb_name in kb_names:
         run_evolutionary_coach_experiment(
