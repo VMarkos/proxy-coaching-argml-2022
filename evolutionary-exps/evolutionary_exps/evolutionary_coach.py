@@ -153,11 +153,20 @@ def run_evolutionary_coach_experiment(
     iterations_type = "epochs" if epochs is not None else "generations"
     iterations_type_secondary = "generations" if epochs is not None else "epochs"
 
+    print("Starting experiment at:", exp_start_time.strftime(time_format))
     print(
-        f"{exp_start_time.strftime(time_format)} - "
-        f"Running experiment for '{kb_name}', {iterations_number} {iterations_type}, "
-        f"{len(training_set)} training set ({training_set_size_limit or 'no'} random sampling), "
-        f"{len(testing_set)} testing set, using {number_of_processes or 'unlimited'} processes."
+        pd.DataFrame.from_dict(
+            {
+                "KB name": kb_name,
+                "Generations": generations if epochs is None else "-",
+                "Epochs": epochs or "-",
+                "Multiprocessing": use_multiprocessing,
+            },
+            orient="index",
+        ).to_markdown(
+            tablefmt="fancy_outline",
+            headers=["Experiment parameters", "Value"],
+        )
     )
 
     # prepare all training contexts and labels by converting them to the Prudens literal format
@@ -608,8 +617,14 @@ def run_evolutionary_coach_experiment(
         all_organisms,
     )
 
-    print("Finished at", datetime.now(tz=tz).strftime(time_format))
-    print("Results saved at", exp_results_dir_path, "\n")
+    print("Results saved at:", exp_results_dir_path)
+    print(
+        pd.DataFrame.from_dict(other_info, orient="index").to_markdown(
+            tablefmt="outline",
+            headers=["Experiment results", "Value"],
+        )
+    )
+    print("Finished at:", datetime.now(tz=tz).strftime(time_format), "\n")
 
 
 def calc_symbolic_module_perf(
