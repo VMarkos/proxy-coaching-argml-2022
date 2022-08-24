@@ -1,4 +1,3 @@
-import argparse
 import gzip
 import json
 import multiprocessing as mp
@@ -8,9 +7,11 @@ from collections import namedtuple
 from datetime import datetime
 from itertools import repeat
 from pathlib import Path
+from typing import List
 from zoneinfo import ZoneInfo
 
 import pandas as pd
+import typer
 from tqdm import tqdm
 
 from evolutionary_exps.prudens_wrappers import (
@@ -20,6 +21,83 @@ from evolutionary_exps.prudens_wrappers import (
 )
 from evolutionary_exps.symbolic_module import PrudensSymbolicModule
 from evolutionary_exps.utils import negate, load_datasets_for_kb, get_project_root
+
+# this is for the cli interface
+app = typer.Typer()
+
+
+@app.command()
+def run_evolutionary_coach_experiments_cli(
+    kb_names: List[str] = typer.Argument(
+        ..., help="Names of the target KBs to train with."
+    ),
+    generations: int = typer.Option(100, help="Number of generations to train for."),
+    epochs: int = typer.Option(
+        None,
+        help="Number of epochs (intervals of generations that start with the addition of a new rule, and end just "
+        "before such an addition) to train for. If provided, the --generations argument is ignored.",
+    ),
+    t: int = typer.Option(
+        0,
+        help="Threshold value used to split a population into beneficial, neutral, and detrimental groups, see "
+        "Valiant (2009), Evolvability, Journal of the ACM, 56(1), 1–21, https://doi.org/10.1145/1462153.1462156",
+    ),
+    k: int = typer.Option(
+        2,
+        help="Exponent value used to give higher probability to organisms with higher fitness "
+        "during the random selection from the beneficial group (if the group is not empty).",
+    ),
+    training_set_size_limit: int = typer.Option(
+        None, help="Allows limiting the size of the training set."
+    ),
+    data_dir_path: Path = typer.Option(
+        None,
+        help="Allows changing the default directory containing the data required for the experiments. MUST be an "
+        "absolute path.",
+        exists=True,
+    ),
+    results_dir_path: Path = typer.Option(
+        None,
+        help="Allows changing the default directory where the experiment results will be written. MUST be an "
+        "absolute path.",
+    ),
+    use_multiprocessing: bool = typer.Option(
+        True,
+        help="Whether to use multiple CPU cores during training (recommended, since it significantly improves training "
+        "speeds). Number of cores to be used can be specified using --number-of-processes.",
+    ),
+    number_of_processes: int = typer.Option(
+        None,
+        help="Number of cores to use during training. If None, all available cores will be used. Ignored if "
+        "--no-use-multiprocessing is specified.",
+    ),
+):
+    """
+    Allows running evolutionary coach experiments using one or more target KBs.
+    """
+    assert kb_names, "List of KB names cannot be empty!"
+    if data_dir_path is not None:
+        assert data_dir_path.is_absolute(), "Please provide an absolute data dir path!"
+    if results_dir_path is not None:
+        assert (
+            results_dir_path.is_absolute()
+        ), "Please provide an absolute results dir path!"
+
+    if len(kb_names) > 1:
+        print(f"Running experiments for {len(kb_names)} KBs: {kb_names}.\n")
+
+    for kb_name in kb_names:
+        run_evolutionary_coach_experiment(
+            kb_name=kb_name,
+            generations=generations,
+            epochs=epochs,
+            t=t,
+            k=k,
+            training_set_size_limit=training_set_size_limit,
+            data_dir_path=data_dir_path,
+            use_multiprocessing=use_multiprocessing,
+            number_of_processes=number_of_processes,
+        )
 
 
 def run_evolutionary_coach_experiment(
@@ -543,31 +621,32 @@ def calc_symbolic_module_perf(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Evolutionary proxy coaching.")
-    parser.add_argument("--kb_name", type=str, help="name of the KB to train")
-    parser.add_argument(
-        "--kbs",
-        metavar="KB",
-        type=str,
-        nargs="+",
-        help="names of KBs to train",
-    )
-    parser.add_argument(
-        "-g",
-        "--generations",
-        type=int,
-        default=5,
-        help="number of generations to train",
-    )
-
-    args = parser.parse_args()
-
-    if args.kb_name is None and args.kbs is None:
-        raise NotImplementedError(
-            "If no single KB or KB list is specified, training with all KBs will be run (not implemented yet)."
-        )
-
-    if args.kb_name is not None:
-        run_evolutionary_coach_experiment(
-            kb_name=args.kb_name, generations=args.generations
-        )
+    app()
+    # parser = argparse.ArgumentParser(description="Evolutionary proxy coaching.")
+    # parser.add_argument("--kb_name", type=str, help="name of the KB to train")
+    # parser.add_argument(
+    #     "--kbs",
+    #     metavar="KB",
+    #     type=str,
+    #     nargs="+",
+    #     help="names of KBs to train",
+    # )
+    # parser.add_argument(
+    #     "-g",
+    #     "--generations",
+    #     type=int,
+    #     default=5,
+    #     help="number of generations to train",
+    # )
+    #
+    # args = parser.parse_args()
+    #
+    # if args.kb_name is None and args.kbs is None:
+    #     raise NotImplementedError(
+    #         "If no single KB or KB list is specified, training with all KBs will be run (not implemented yet)."
+    #     )
+    #
+    # if args.kb_name is not None:
+    #     run_evolutionary_coach_experiment(
+    #         kb_name=args.kb_name, generations=args.generations
+    #     )
